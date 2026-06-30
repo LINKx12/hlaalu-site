@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balmora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Cormorant Garamond', 'Garamond', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: stageIn 2.4s ease-out forwards;
+  }
+
+  @keyframes stageIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .image-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .art {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 900ms ease-in-out;
+  }
+
+  #art-color {
+    opacity: 1;
+  }
+
+  #art-gray {
+    opacity: 0;
+  }
+
+  .stage.hovering #art-color {
+    opacity: 0;
+  }
+
+  .stage.hovering #art-gray {
+    opacity: 1;
+  }
+
+  .dim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 900ms ease-in-out;
+    z-index: 3;
+  }
+
+  .stage.hovering .dim {
+    opacity: 0.45;
+  }
+
+  .veil {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 800ms ease-in-out;
+    z-index: 5;
+  }
+
+  .veil.active {
+    opacity: 1;
+  }
+
+  .leave-button {
+    position: absolute;
+    bottom: 6%;
+    left: 6%;
+    transform: none;
+    background: rgba(8, 8, 8, 0.78);
+    border: 1px solid rgba(232, 220, 196, 0.55);
+    color: #ece4d2;
+    font-family: 'Cormorant Garamond', 'Garamond', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.88rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 0.7em 1.8em;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+    box-shadow: 0 0 28px rgba(0, 0, 0, 0.55);
+    transition: opacity 700ms ease-in-out, border-color 500ms ease, color 500ms ease, background 500ms ease, box-shadow 500ms ease;
+  }
+
+  .leave-button:hover,
+  .leave-button:focus-visible {
+    border-color: rgba(232, 220, 196, 0.95);
+    color: #fff;
+    background: rgba(8, 8, 8, 0.92);
+    box-shadow: 0 0 36px rgba(0, 0, 0, 0.75);
+    outline: none;
+  }
+
+  .leave-button.fading {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 600px) {
+    .art {
+      object-position: left center;
+    }
+
+    .leave-button {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      padding: 0.6em 1.3em;
+      bottom: 5%;
+      left: 5%;
+    }
+  }
+
+  .departure {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ece4d2;
+    font-family: 'Cormorant Garamond', 'Garamond', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.4rem;
+    letter-spacing: 0.18em;
+    text-align: center;
+    opacity: 0;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 1200ms ease-in-out;
+    width: 80%;
+    max-width: 600px;
+  }
+
+  .departure.visible {
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    .departure {
+      font-size: 1.05rem;
+      letter-spacing: 0.1em;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="image-wrap">
+    <img id="art-color" class="art" src="images/balmora-color.png" alt="Balmora, Morrowind">
+    <img id="art-gray" class="art" src="images/balmora-grayscale.webp" alt="">
+    <div class="dim"></div>
+  </div>
+  <button id="leave" class="leave-button">Take your leave</button>
+  <div id="departure" class="departure">House Hlaalu records this departure.</div>
+  <div id="veil" class="veil"></div>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const button = document.getElementById('leave');
+  const veil = document.getElementById('veil');
+  const departure = document.getElementById('departure');
+
+  button.addEventListener('mouseenter', () => stage.classList.add('hovering'));
+  button.addEventListener('mouseleave', () => stage.classList.remove('hovering'));
+  button.addEventListener('focus', () => stage.classList.add('hovering'));
+  button.addEventListener('blur', () => stage.classList.remove('hovering'));
+
+  button.addEventListener('click', () => {
+    button.disabled = true;
+    veil.classList.add('active');
+    button.classList.add('fading');
+
+    setTimeout(() => {
+      departure.classList.add('visible');
+    }, 800);
+
+    setTimeout(() => {
+      window.location.href = 'https://en.uesp.net/wiki/Morrowind:House_Hlaalu';
+    }, 3800);
+  });
+</script>
+
+</body>
+</html>
